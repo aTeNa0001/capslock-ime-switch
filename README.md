@@ -2,21 +2,20 @@
 
 Windows で CapsLock キーを「全角/半角」キーとして使う AutoHotkey v2 のスクリプトです。
 
-## 使い方
+## 自動セットアップ
 
 1. [AutoHotkey v2](https://www.autohotkey.com/) をインストールします。
-2. [`ime-switch.ahk`](ime-switch.ahk) をダブルクリックします。
-3. CapsLock キーで日本語入力のオンとオフを切り替えられることを確認します。
+2. このフォルダで PowerShell を開き、次のコマンドを実行します。
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+このコマンドは「ドキュメント\setting\capslock」フォルダを作成して `ime-switch.ahk` を配置し、Windows のスタートアップフォルダにショートカットを作ります。繰り返し実行すると、スクリプトとショートカットを更新できます。配置先を変える場合は `-InstallDir 'C:\任意の場所\capslock'` を追加します。
+
+今すぐ使う場合は、配置された `ime-switch.ahk` をダブルクリックしてください。CapsLock キーで日本語入力のオンとオフを切り替えられることを確認します。
 
 このスクリプトは `#NoTrayIcon` を指定しているため、通知領域にアイコンは表示されません。同じファイルを再度起動すると、実行中のスクリプトが置き換わります。
-
-## Windows 起動時に実行する
-
-1. `Win + R` を押し、`shell:startup` と入力して Enter を押します。
-2. `ime-switch.ahk` のショートカットを作成します。
-3. 作成したショートカットを、開いたスタートアップフォルダに置きます。
-
-スクリプトを移動した場合は、ショートカットのリンク先も更新してください。
 
 ## 動作確認
 
