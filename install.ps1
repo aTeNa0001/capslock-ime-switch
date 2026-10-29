@@ -6,20 +6,29 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$source = Join-Path $PSScriptRoot 'ime-switch.ahk'
-if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
-    throw "ime-switch.ahk was not found: $source"
-}
-
 if (-not $AutoHotkeyPath) {
-    $candidates = @(
-        (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'),
-        (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey.exe')
-    )
+    $roots = @($env:ProgramFiles, (Join-Path $env:LOCALAPPDATA 'Programs'))
+    $candidates = foreach ($root in $roots) {
+        foreach ($name in @('AutoHotkey64.exe', 'AutoHotkey32.exe', 'AutoHotkey.exe')) {
+            Join-Path $root "AutoHotkey\v2\$name"
+        }
+    }
     $AutoHotkeyPath = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+
+    if (-not $AutoHotkeyPath) {
+        $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
+        if (-not $winget) {
+            throw 'winget was not found. Install Windows App Installer or install AutoHotkey v2 manually.'
+        }
+        & $winget.Source install --id AutoHotkey.AutoHotkey --exact --source winget --scope user --silent --accept-package-agreements --accept-source-agreements
+        if ($LASTEXITCODE -ne 0) {
+            throw "winget failed to install AutoHotkey (exit code $LASTEXITCODE)."
+        }
+        $AutoHotkeyPath = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+    }
 }
 if (-not $AutoHotkeyPath -or -not (Test-Path -LiteralPath $AutoHotkeyPath -PathType Leaf)) {
-    throw 'AutoHotkey v2 was not found. Install it first or specify -AutoHotkeyPath.'
+    throw 'AutoHotkey v2 was not found after installation. Specify -AutoHotkeyPath if it is installed elsewhere.'
 }
 
 $InstallDir = [IO.Path]::GetFullPath($InstallDir)
@@ -29,8 +38,13 @@ $shortcutPath = Join-Path $StartupFolder 'CapsLock IME Switch.lnk'
 
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 New-Item -ItemType Directory -Path $StartupFolder -Force | Out-Null
-if (-not [string]::Equals([IO.Path]::GetFullPath($source), $target, [StringComparison]::OrdinalIgnoreCase)) {
-    Copy-Item -LiteralPath $source -Destination $target -Force
+$source = if ($PSScriptRoot) { Join-Path $PSScriptRoot 'ime-switch.ahk' } else { $null }
+if ($source -and (Test-Path -LiteralPath $source -PathType Leaf)) {
+    if (-not [string]::Equals([IO.Path]::GetFullPath($source), $target, [StringComparison]::OrdinalIgnoreCase)) {
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+} else {
+    Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/aTeNa0001/capslock-ime-switch/main/ime-switch.ahk' -OutFile $target
 }
 
 $validation = Start-Process -FilePath $AutoHotkeyPath -ArgumentList @('/Validate', ('"' + $target + '"')) -Wait -PassThru

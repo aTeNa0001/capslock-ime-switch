@@ -2,15 +2,15 @@
 
 Windows で CapsLock キーを「全角/半角」キーとして使う AutoHotkey v2 のスクリプトです。
 
-## フォルダがまだない場合
+## 1 行でセットアップ
 
-[AutoHotkey v2](https://www.autohotkey.com/) をインストールしてから、PowerShell に次の **1 行**を貼り付けて実行します。作成先は「ドキュメント\setting\capslock」です。
+PowerShell に次のコマンドを貼り付けて実行します。
 
 ```powershell
-$d=Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'setting\capslock'; $a=Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'; if (!(Test-Path -LiteralPath $a)) { throw 'Install AutoHotkey v2 first' }; New-Item -ItemType Directory -Path $d -Force | Out-Null; $f=Join-Path $d 'ime-switch.ahk'; @('#Requires AutoHotkey v2.0','#SingleInstance Force','#NoTrayIcon','','CapsLock::Send "{vkF3sc029}"') | Set-Content -LiteralPath $f -Encoding utf8; $s=(New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path ([Environment]::GetFolderPath('Startup')) 'CapsLock IME Switch.lnk')); $s.TargetPath=$a; $s.Arguments='"'+$f+'"'; $s.WorkingDirectory=$d; $s.Save()
+irm https://raw.githubusercontent.com/aTeNa0001/capslock-ime-switch/main/install.ps1 | iex
 ```
 
-フォルダと `ime-switch.ahk` が作られ、スタートアップにショートカットが登録されます。次回の Windows 起動時から自動実行されます。
+このコマンドはこのリポジトリの [`install.ps1`](install.ps1) を取得して実行します。AutoHotkey v2 がなければ `winget` でユーザー単位にインストールし、「ドキュメント\setting\capslock」フォルダとスタートアップのショートカットを作成します。次回の Windows 起動時から自動実行されます。`winget` がない環境では、先に Windows App Installer を導入してください。
 
 ## このリポジトリからセットアップする場合
 
@@ -20,7 +20,7 @@ $d=Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'setting\capslock'; $
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-このコマンドも「ドキュメント\setting\capslock」フォルダを作成して `ime-switch.ahk` を配置し、Windows のスタートアップフォルダにショートカットを作ります。繰り返し実行すると、スクリプトとショートカットを更新できます。配置先を変える場合は `-InstallDir 'C:\任意の場所\capslock'` を追加します。
+このコマンドも同じセットアップを行います。繰り返し実行すると、スクリプトとショートカットを更新できます。配置先を変える場合は `-InstallDir 'C:\任意の場所\capslock'` を追加します。
 
 今すぐ使う場合は、配置された `ime-switch.ahk` をダブルクリックしてください。CapsLock キーで日本語入力のオンとオフを切り替えられることを確認します。
 
